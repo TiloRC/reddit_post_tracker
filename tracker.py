@@ -4,6 +4,7 @@ import schedule
 import math
 from datetime import datetime
 import concurrent.futures
+import os
 
 from reddit import reddit
 
@@ -16,6 +17,10 @@ class PostTracker:
         self.mature_posts = {sub: {} for sub in subreddits}
         self.hot = {sub: {} for sub in subreddits}
         self.subs = [reddit.subreddit(sub) for sub in subreddits]
+        try:
+            os.mkdir("data")
+        except FileExistsError:
+            pass
         
     def start_tracking(self):
         print("Tracking started...")
