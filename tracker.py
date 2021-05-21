@@ -5,9 +5,9 @@ import math
 from datetime import datetime
 import concurrent.futures
 import os
+import sys
 
-from reddit import reddit
-
+from settings import reddit
 
 
 class PostTracker:
@@ -17,6 +17,7 @@ class PostTracker:
         self.mature_posts = {sub: {} for sub in subreddits}
         self.hot = {sub: {} for sub in subreddits}
         self.subs = [reddit.subreddit(sub) for sub in subreddits]
+
         try:
             os.mkdir("data")
         except FileExistsError:
@@ -38,7 +39,6 @@ class PostTracker:
             self.message()
                 
         schedule.every().minute.at(":00").do(update_all)
-
         while True:
             schedule.run_pending()
 
@@ -98,9 +98,10 @@ class PostTracker:
         for sub in self.subs:
             sub_name = str(sub)
             message += " ||| "+sub_name + " - "
-            message += "\n\tposts: " + str(len(self.posts[sub_name]))
-            message += "\n\tmature posts: " + str(len(self.mature_posts[sub_name]))
-        reddit.redditor('TiloRC').message("UPDATE: "+sub_name, message)
+            message += "posts: " + str(len(self.posts[sub_name]))
+            message += " mature posts: " + str(len(self.mature_posts[sub_name]))
+        print(message)
+        #reddit.redditor("myUsername").message("UPDATE", message)
 
     def update_files(self):
         file = open("data/data.txt","w")
@@ -125,9 +126,16 @@ class PostTracker:
     def get_time(self):
         return datetime.now().strftime("%m:%d:%H:%M:%S")
 
-pt = PostTracker(["pics","WritingPrompts","Lain"])
-pt.start_tracking()
-
-
-     
-
+if __name__ == '__main__':
+    args = []
+    if sys.argv[1] == "load_old":
+        print("load_old = True")
+        load_old = True
+        args = sys.argv[2:]
+    else:
+        args = sys.argv[1:]
+        load_old = False
+    pt = PostTracker(args)
+    if load_old:
+        pt.load_old_data()
+    pt.start_tracking()
