@@ -141,15 +141,7 @@ class PostTracker:
 
 
 if __name__ == '__main__':
-    args = []
-    if sys.argv[1] == "load":
-        print("load = True")
-        load_old = True
-        args = sys.argv[2:]
-    else:
-        args = sys.argv[1:]
-        load_old = False
-    pt = PostTracker(args)
-    if load_old:
-        pt.load_old_data()
+    
+    pt = PostTracker(sys.argv[1:])
+    pt.load_old_data()
     pt.start_tracking()
