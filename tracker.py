@@ -2,12 +2,15 @@ import praw
 import json
 import schedule
 import math
+import statistics as stats
 from datetime import datetime
 import concurrent.futures
 import os
 import sys
 
 from settings import reddit
+import time
+import database
 
 
 class PostTracker:
@@ -17,11 +20,9 @@ class PostTracker:
         self.mature_posts = {sub: {} for sub in subreddits}
         self.hot = {sub: {} for sub in subreddits}
         self.subs = [reddit.subreddit(sub) for sub in subreddits]
-
-        try:
-            os.mkdir("data")
-        except FileExistsError:
-            pass
+        self.database_queue = []
+        self.num_active_posts = {sub: 300 for sub in subreddits}
+        self.latest_post_rank = {sub: [] for sub in subreddits}
         
     def start_tracking(self):
         print("Tracking started...")
@@ -31,12 +32,19 @@ class PostTracker:
             self.check_for_new_post(sub)
             self.update_hot(sub)
             self.update(sub)
+            self.update_active_posts(sub)
 
         def update_all():
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                executor.map(update,self.subs)
-            self.update_files()
+            start = time.time()
+            if len(self.subs) > 1:
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    executor.map(update,self.subs)
+            else:
+                update(self.subs[0])
+            self.update_database()
             self.message()
+            end = time.time()
+            print("Update Time: ",end-start, " sec")
                 
         schedule.every().minute.at(":00").do(update_all)
         while True:
@@ -59,8 +67,9 @@ class PostTracker:
     
     def update_hot(self,sub):
         sub_name = str(sub)
+        limit = self.num_active_posts[sub_name]
         try:
-            hot = {post.id:post for post in sub.hot(limit = 1000) if not post.stickied }
+            hot = {post.id:post for post in sub.hot(limit = limit) if not post.stickied }
         except Exception as e:
             time = self.get_time()
             print("Error: Update Hot (", time,")")
@@ -75,23 +84,27 @@ class PostTracker:
             return ar.index(post_id)+1
         except:
             return math.nan
+
+    def get_post_by_rank(self,rank,sub):
+        sub_name = str(sub)
+        ar = [post for post in self.hot[sub_name]]
+        return ar[rank-1]
     
     def update(self, sub):
         sub_name = str(sub)
-        time = self.get_time()
-        for post_id in self.posts[sub_name]:
+        for post_id in self.posts[sub_name].copy():
             rank = self.get_rank(post_id, sub)
             if math.isnan(rank):
                 self.mature_posts[sub_name][post_id] = self.posts[sub_name].pop(post_id)
             else:
-                try:
-                    self.posts[sub_name][post_id]
-                except KeyError as e:
-                    print("Error 1 at ",sub_name,": ",e)
-                try:
-                    self.posts[sub_name][post_id].append([time, rank, self.hot[sub_name][post_id].score])
-                except KeyError as e:
-                    print("Error 2 at ",sub_name,": ",e, "(rank = ", rank,")")
+                post = self.hot[sub_name][post_id]
+                #self.posts[sub_name][post_id].append([date_time, rank, post.score]) 
+                self.database_queue.append({"subreddit":sub_name,
+                                            "post_id":post_id,
+                                            "age":time.time()-post.created_utc,
+                                            "current_time":time.time(), 
+                                            "rank":rank,
+                                            "score": post.score})
 
     def message(self):
         message = ""
@@ -103,33 +116,34 @@ class PostTracker:
         print(message)
         #reddit.redditor("myUsername").message("UPDATE", message)
 
-    def update_files(self):
-        file = open("data/data.txt","w")
-        file.write(str(self.posts))
-        file.close()
+    def update_database(self):
+        for item in self.database_queue:
+            database.insert(item)
+        self.database_queue = []
 
-        file2 = open("data/mature_data.txt","w")
-        file2.write(str(self.mature_posts))
-        file2.close()
+    def update_active_posts(self, sub):
+        sub = str(sub)
+        post_id = self.latest_post_id[sub]
+        self.latest_post_rank[sub].append(self.get_rank(post_id,sub))
+        num_active_posts = 10 + 2*int(stats.mean(self.latest_post_rank[sub]))
 
-    def load_old_data(self):
-        file = open("data/data.txt","r")
-        old_data = file.read().replace("'",'"')
-        self.posts = json.loads(old_data)
-        file.close()
+        if math.isnan(num_active_posts):
+            self.num_active_posts[sub] += 100
+            print("nan. ",self.num_active_posts[sub])
+        else:
+            self.num_active_posts[sub] = num_active_posts 
+            print(sub," # active_posts: ",num_active_posts,end =" - ")
+            try:
+            	print(sub+"/comments/"+str(self.get_post_by_rank(num_active_posts,sub)))
+            except IndexError:
+            	print("index error")
 
-        file2 = open("data/mature_data.txt","r")
-        old_mature_data = file2.read().replace("'",'"')
-        self.mature_posts = json.loads(old_mature_data)
-        file2.close()
 
-    def get_time(self):
-        return datetime.now().strftime("%m:%d:%H:%M:%S")
 
 if __name__ == '__main__':
     args = []
-    if sys.argv[1] == "load_old":
-        print("load_old = True")
+    if sys.argv[1] == "load":
+        print("load = True")
         load_old = True
         args = sys.argv[2:]
     else:
