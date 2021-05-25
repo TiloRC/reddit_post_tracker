@@ -46,12 +46,11 @@ except sqlite3.OperationalError:
 	pass
 
 if __name__ == '__main__':
-	switch(sys.argv[1]):
-		case "print_all":
+		if sys.argv[1] == "print_all":
 			print_all()
-		case "print_subreddit":
-			print_subreddit(sys.arv[2])
-		case "clear_all":
+		elif sys.argv[1] == "print_subreddit":
+			print_subreddit(sys.argv[2])
+		elif sys.argv[1] == "clear_all":
 			clear_all()
 
 
