@@ -132,11 +132,11 @@ class PostTracker:
             print("nan. ",self.num_active_posts[sub])
         else:
             self.num_active_posts[sub] = num_active_posts 
-            print(sub," # active_posts: ",num_active_posts,end =" - ")
-            try:
-            	print(sub+"/comments/"+str(self.get_post_by_rank(num_active_posts,sub)))
-            except IndexError:
-            	print("index error")
+            #print(sub," # active_posts: ",num_active_posts,end =" - ")
+            #try:
+            #	print(sub+"/comments/"+str(self.get_post_by_rank(num_active_posts,sub)))
+            #except IndexError:
+            #	print("index error")
 
 
 
