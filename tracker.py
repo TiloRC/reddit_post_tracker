@@ -141,7 +141,6 @@ class PostTracker:
 
 
 if __name__ == '__main__':
-    
     pt = PostTracker(sys.argv[1:])
     pt.load_old_data()
     pt.start_tracking()
