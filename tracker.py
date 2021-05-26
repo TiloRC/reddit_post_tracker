@@ -16,8 +16,8 @@ import database
 class PostTracker:
     def __init__(self, subreddits):
         self.latest_post_id = {sub: "" for sub in subreddits}
-        self.posts = {sub: {} for sub in subreddits}
-        self.mature_posts = {sub: {} for sub in subreddits}
+        self.active_posts = {sub: {} for sub in subreddits}
+        self.inactive_posts = {sub: {} for sub in subreddits}
         self.hot = {sub: {} for sub in subreddits}
         self.subs = [reddit.subreddit(sub) for sub in subreddits]
         self.database_queue = []
@@ -63,7 +63,7 @@ class PostTracker:
 
             if self.latest_post_id[sub_name] != new_post_id:
                 self.latest_post_id[sub_name] = new_post_id
-                self.posts[sub_name][self.latest_post_id[sub_name]] = []
+                self.active_posts[sub_name][self.latest_post_id[sub_name]] = []
     
     def update_hot(self,sub):
         sub_name = str(sub)
@@ -92,13 +92,13 @@ class PostTracker:
     
     def update(self, sub):
         sub_name = str(sub)
-        for post_id in self.posts[sub_name].copy():
+        for post_id in self.active_posts[sub_name].copy():
             rank = self.get_rank(post_id, sub)
             if math.isnan(rank):
-                self.mature_posts[sub_name][post_id] = self.posts[sub_name].pop(post_id)
+                self.inactive_posts[sub_name][post_id] = self.active_posts[sub_name].pop(post_id)
             else:
                 post = self.hot[sub_name][post_id]
-                #self.posts[sub_name][post_id].append([date_time, rank, post.score]) 
+                #self.active_posts[sub_name][post_id].append([date_time, rank, post.score]) 
                 self.database_queue.append({"subreddit":sub_name,
                                             "post_id":post_id,
                                             "age":time.time()-post.created_utc,
@@ -111,8 +111,8 @@ class PostTracker:
         for sub in self.subs:
             sub_name = str(sub)
             message += " ||| "+sub_name + " - "
-            message += "posts: " + str(len(self.posts[sub_name]))
-            message += " mature posts: " + str(len(self.mature_posts[sub_name]))
+            message += "active posts: " + str(len(self.active_posts[sub_name]))
+            message += " inactive posts: " + str(len(self.inactive_posts[sub_name]))
         print(message)
         #reddit.redditor("myUsername").message("UPDATE", message)
 
