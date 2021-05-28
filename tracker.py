@@ -21,7 +21,7 @@ class PostTracker:
             self.subs[sub] = {
                 "name": sub,
                 # Holds hot data after it is requested
-                "hot" : {},
+                "hot" : [],
                 # Data is stored here during multithreading and then sent to the database
                 "database_queue":[],
                 # An estimate of the number of active posts in each subreddit updated in real time
@@ -52,12 +52,13 @@ class PostTracker:
                 update([sub for sub in self.subs][0])
             for item in self.database_queue:
                 #print(item)
-                database.insert(item,"database")
+                database.insert(item,"raw_data")
             self.database_queue = []
                 
             self.message()
+
+            print("Total active posts: ",sum([self.subs[sub]["num_active_posts"] for sub in self.subs]))
             end = time.time()
-            print("number of datapoints: ",database.get_size())
             print("Update Time: ",end-start, " sec")
                 
         schedule.every().minute.at(":00").do(update_all)
@@ -67,10 +68,7 @@ class PostTracker:
     def check_for_new_post (self,sub):
         try:
             new = reddit.subreddit(sub).new(limit=1)
-        except Exception as e:
-            #time = self.get_time()
-            #print("Error: Check for new post (", time,") ",sub_name)
-            #print(e,"\n")
+        except:
             pass
         else:
             self.subs[sub]["latest_post_id"] = [submission.id for submission in new][0]
@@ -78,7 +76,7 @@ class PostTracker:
     def update_hot(self,sub):
         limit = self.subs[sub]["num_active_posts"]
         try:
-            hot = {post.id:post for post in reddit.subreddit(sub).hot(limit = limit) if not post.stickied }
+            hot = [post for post in reddit.subreddit(sub).hot(limit = limit) if not post.stickied]
         except Exception as e:
             time = self.get_time()
             print("Error: Update Hot (", time,")")
@@ -87,22 +85,21 @@ class PostTracker:
             self.subs[sub]["hot"] = hot
     
     def get_rank(self,post_id, sub):
-        ar = [post for post in self.subs[sub]["hot"]]
+        ar = [post.id for post in self.subs[sub]["hot"]]
         try:
             return ar.index(post_id)+1
         except:
             return math.nan
 
     def get_post_by_rank(self,rank,sub):
-        ar = [post for post in self.subs[sub]["hot"]]
+        ar = self.subs[sub]["hot"]
         return ar[rank-1]
     
     def update(self, sub):
-        for post_id in self.subs[sub]["hot"]:
-            rank = self.get_rank(post_id, sub)
-            post = self.subs[sub]["hot"][post_id]
+        for post in self.subs[sub]["hot"]:
+            rank = self.get_rank(post.id, sub)
             self.database_queue.append({"subreddit":sub,
-                                        "post_id":post_id,
+                                        "post_id":post.id,
                                         "age":time.time()-post.created_utc,
                                         "current_time":time.time(), 
                                         "rank":rank,
@@ -116,9 +113,13 @@ class PostTracker:
             message += " ||| "+sub + " - "
             message += "estimated active posts: " + str(self.subs[sub]["num_active_posts"])
         print(message)
+
         #reddit.redditor("myUsername").message("UPDATE", message)
 
     def update_active_posts(self, sub):
+
+        lowest_ranking = [post for post in self.subs[sub]["hot"]][-1]
+
         post_id = self.subs[sub]["latest_post_id"]
         self.subs[sub]["latest_post_rank"].append(self.get_rank(post_id,sub))
         rank_history = [rank for rank in self.subs[sub]["latest_post_rank"] if not math.isnan(rank)]
@@ -127,14 +128,8 @@ class PostTracker:
 
             if math.isnan(num_active_posts) and self.subs[sub]["num_active_posts"] < 1000:
                 self.subs[sub]["num_active_posts"] += 100
-                #print("nan. ",self.num_active_posts[sub])
             else:
                 self.subs[sub]["num_active_posts"] = num_active_posts 
-                #print(sub," # active_posts: ",num_active_posts,end =" - ")
-                #try:
-                #	print(sub+"/comments/"+str(self.get_post_by_rank(num_active_posts,sub)))
-                #except IndexError:
-                #	print("index error")
 
 
 
