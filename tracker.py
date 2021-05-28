@@ -44,22 +44,26 @@ class PostTracker:
             self.update_active_posts(sub)
 
         def update_all():
+            # Requests data from reddit servers. Deposites it in self.database_queue
             start = time.time()
             if len(self.subs) > 1:
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     executor.map(update,self.subs)
             else:
                 update([sub for sub in self.subs][0])
-            for item in self.database_queue:
-                #print(item)
-                database.insert(item,"raw_data")
-            self.database_queue = []
-                
-            self.message()
-
-            print("Total active posts: ",sum([self.subs[sub]["num_active_posts"] for sub in self.subs]))
             end = time.time()
-            print("Update Time: ",end-start, " sec")
+            print("Data request time: ", end-start)
+
+
+            # Unloads data from self.database_queue into database
+            start = time.time()
+            database.insert_many(self.database_queue,"raw_data")
+            self.database_queue = []
+            end = time.time()
+            print("Update database time: ", end-start)
+
+            self.message()
+            print("Total active posts: ",sum([self.subs[sub]["num_active_posts"] for sub in self.subs]))
                 
         schedule.every().minute.at(":00").do(update_all)
         while True:

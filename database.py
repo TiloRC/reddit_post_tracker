@@ -17,6 +17,11 @@ def insert(datum, table):
 	with conn:
 		c.execute("INSERT INTO " +table +" VALUES (:subreddit,:post_id,:age,:current_time,:rank,:score)", datum)
 
+def insert_many(data, table):
+	with conn:
+		for datum in data:
+			c.execute("INSERT INTO " +table +" VALUES (:subreddit,:post_id,:age,:current_time,:rank,:score)", datum)
+
 
 def print_subreddit(subreddit, table):
 	with conn:
