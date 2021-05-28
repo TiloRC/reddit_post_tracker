@@ -91,11 +91,9 @@ def update_filtered_data():
 		insert(x, "filtered_data")
 	print(len(get_all("filtered_data")))
 
-def copy_table_to_table(table1,table2):
+def copy_table_to_table(source,destination):
 	with conn:
-		c.execute("SELECT * FROM "+table1)
-		for x in c.fetchall():
-			insert(x,table2)
+		c.execute("INSERT INTO "+ destination+" SELECT * FROM "+table1)
 
 #update_filtered_data()
 
