@@ -93,7 +93,7 @@ def update_filtered_data():
 
 def copy_table_to_table(source,destination):
 	with conn:
-		c.execute("INSERT INTO "+ destination+" SELECT * FROM "+table1)
+		c.execute("INSERT INTO "+ destination+" SELECT * FROM "+source)
 
 #update_filtered_data()
 
