@@ -3,7 +3,7 @@ import schedule
 from datetime import datetime
 import concurrent.futures
 import sys
-from settings import reddit
+from authentication import reddit
 import time
 import database
 

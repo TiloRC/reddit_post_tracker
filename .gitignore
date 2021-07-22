@@ -1,7 +1,7 @@
 .DS_Store
 __pycache__/
 data/
-settings.py
+authentication.py
 data.db
 notes.txt
 viz.py
