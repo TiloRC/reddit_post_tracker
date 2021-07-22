@@ -13,130 +13,89 @@ import time
 import database
 
 
-
 class PostTracker:
     def __init__(self, subreddits):
-        self.subs = {}
-        for sub in subreddits:
-            self.subs[sub] = {
-                "name": sub,
-                # Holds hot data after it is requested
-                "hot" : [],
-                # Data is stored here during multithreading and then sent to the database
-                "database_queue":[],
-                # An estimate of the number of active posts in each subreddit updated in real time
-                "num_active_posts": 300,
-                # Stores the post id of the newest post in each subreddit
-                "latest_post_id" : "",
-                # Stores the current hot rank of the newest post id for each subreddit. Used to estimate num_active_posts.
-                "latest_post_rank": []
-            }
+        self.subs = {sub:2+2*self.count_new_posts(sub) for sub in subreddits}
+        print(self.subs)
+        for sub in self.subs:
+            try:
+                database.create_table(sub)
+            except database.sqlite3.OperationalError:
+                pass
 
-        self.database_queue = []
-        
     def start_tracking(self):
         print("Tracking started...")
-        def update(sub):
-            print(str(sub) + " starting update...")
-            self.check_for_new_post(sub)
-            self.update_hot(sub)
-            self.update(sub)
-            self.update_active_posts(sub)
-
         def update_all():
-            # Requests data from reddit servers. Deposites it in self.database_queue
-            start = time.time()
-            if len(self.subs) > 1:
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    executor.map(update,self.subs)
-            else:
-                update([sub for sub in self.subs][0])
-            end = time.time()
-            print("Data request time: ", end-start)
+            raw_data = self.fetch_all_data()
+            new_data = self.clean_up(raw_data) # Converts to dictionary format
+            self.export_to_database(new_data)
 
-
-            # Unloads data from self.database_queue into database
-            start = time.time()
-            database.insert_many(self.database_queue,"raw_data")
-            self.database_queue = []
-            end = time.time()
-            print("Update database time: ", end-start)
-
-            self.message()
-            print("Total active posts: ",sum([self.subs[sub]["num_active_posts"] for sub in self.subs]))
-                
         schedule.every().minute.at(":00").do(update_all)
         while True:
             schedule.run_pending()
 
-    def check_for_new_post (self,sub):
-        try:
-            new = reddit.subreddit(sub).new(limit=1)
-        except:
-            pass
+    def fetch_all_data(self):
+        def fetch_new_subreddit_data(sub):
+            print(sub + " fetching data...")
+            result = {sub: [post for post in reddit.subreddit(sub).hot(limit = self.subs[sub]) if not post.stickied]}
+            print(sub + " fetching data complete")
+            return result
+
+        start = time.time()
+        if len(self.subs) > 1:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                result = {}
+                for subreddit in executor.map(fetch_new_subreddit_data,self.subs):
+                    result.update(subreddit)
         else:
-            self.subs[sub]["latest_post_id"] = [submission.id for submission in new][0]
-    
-    def update_hot(self,sub):
-        limit = self.subs[sub]["num_active_posts"]
-        try:
-            hot = [post for post in reddit.subreddit(sub).hot(limit = limit) if not post.stickied]
-        except Exception as e:
-            time = self.get_time()
-            print("Error: Update Hot (", time,")")
-            print(e,"\n")
-        else:
-            self.subs[sub]["hot"] = hot
-    
-    def get_rank(self,post_id, sub):
-        ar = [post.id for post in self.subs[sub]["hot"]]
-        try:
-            return ar.index(post_id)+1
-        except:
-            return math.nan
+            result = [fetch_new_subreddit_data([sub for sub in self.subs][0])]
+        end = time.time()
+        print("Fetch all time: ", end-start)
+        return result
 
-    def get_post_by_rank(self,rank,sub):
-        ar = self.subs[sub]["hot"]
-        return ar[rank-1]
-    
-    def update(self, sub):
-        for post in self.subs[sub]["hot"]:
-            rank = self.get_rank(post.id, sub)
-            self.database_queue.append({"subreddit":sub,
-                                        "post_id":post.id,
-                                        "age":time.time()-post.created_utc,
-                                        "current_time":time.time(), 
-                                        "rank":rank,
-                                        "score": post.score})
+    def clean_up(self,raw_data):
+        present_time = time.time()
+        new_data = {}
+        for subreddit in raw_data:
+            subreddit_data = {}
+            sub_name = subreddit
+            sub_data = raw_data[subreddit]
 
+            rank = 0
+            for post in sub_data:
+                rank += 1
+                subreddit_data[post.id] = {
+                    "post_id": post.id,
+                    #"subreddit": sub_name,
+                    "score": post.score,
+                    "rank": rank,
+                    "num_comments": post.num_comments,
+                    "present_time": present_time
+                }
+            new_data[sub_name] = subreddit_data
+        return new_data
 
+    def export_to_database(self, new_data):
+        for subreddit in new_data:
+            sub_data = new_data[subreddit]
+            sub_data = [sub_data[post_id] for post_id in sub_data]
+            database.insert_posts(sub_data, subreddit)
 
-    def message(self):
-        message = ""
-        for sub in self.subs:
-            message += " ||| "+sub + " - "
-            message += "estimated active posts: " + str(self.subs[sub]["num_active_posts"])
-        print(message)
-
-        #reddit.redditor("myUsername").message("UPDATE", message)
-
-    def update_active_posts(self, sub):
-
-        lowest_ranking = [post for post in self.subs[sub]["hot"]][-1]
-
-        post_id = self.subs[sub]["latest_post_id"]
-        self.subs[sub]["latest_post_rank"].append(self.get_rank(post_id,sub))
-        rank_history = [rank for rank in self.subs[sub]["latest_post_rank"] if not math.isnan(rank)]
-        if len(rank_history) > 0:
-            num_active_posts = 10 + 2*int(stats.mean(rank_history))
-
-            if math.isnan(num_active_posts) and self.subs[sub]["num_active_posts"] < 1000:
-                self.subs[sub]["num_active_posts"] += 100
-            else:
-                self.subs[sub]["num_active_posts"] = num_active_posts 
+    def count_new_posts(self,subreddit):
+        present_time = time.time()
+        new = [(present_time-post.created_utc)/60/60 for post in reddit.subreddit(subreddit).new(limit = 150)]
+        num_new_posts = 0
+        for t in new:
+            if t < 12:
+                num_new_posts += 1
+        if num_new_posts == 150:
+            num_new_posts = 250
+        return num_new_posts
 
 
 
 if __name__ == '__main__':
-    pt = PostTracker(sys.argv[1:])
+    #subs sys.argv[1:]
+    subs = ["lain", "writingprompts", "wallstreetbets"]
+    pt = PostTracker(subs)
     pt.start_tracking()

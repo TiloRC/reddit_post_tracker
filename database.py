@@ -10,17 +10,17 @@ c = conn.cursor()
 def create_table(table_name):
 	with conn:
 		c.execute("CREATE TABLE "+ table_name +""" (
-					subreddit text, post_id text,age real, current_time real, rank int,	score int
+					post_id text, score int, rank int, num_comments int, present_time real
 					)""")
 
-def insert(datum, table):
-	with conn:
-		c.execute("INSERT INTO " +table +" VALUES (:subreddit,:post_id,:age,:current_time,:rank,:score)", datum)
+#def insert(datum, table):
+#	with conn:
+#		c.execute("INSERT INTO " +table +" VALUES (:subreddit,:post_id,:age,:current_time,:rank,:score)", datum)
 
-def insert_many(data, table):
+def insert_posts(posts, table):
 	with conn:
-		for datum in data:
-			c.execute("INSERT INTO " +table +" VALUES (:subreddit,:post_id,:age,:current_time,:rank,:score)", datum)
+		for post in posts:
+			c.execute("INSERT INTO " +table +" VALUES (:post_id,:score,:rank,:num_comments,:present_time)", post)
 
 
 def print_subreddit(subreddit, table):
@@ -74,7 +74,7 @@ def get_size(table):
 	end = time.time()
 	if end - start > 1:
 		print("get_size time: ", end-start)
-	return result 
+	return result
 
 def clear_all(table):
 	with conn:
@@ -102,11 +102,6 @@ def copy_table_to_table(source,destination):
 
 #update_filtered_data()
 
-try:
-	create_table("filtered_data")
-	create_table("raw_data")
-except sqlite3.OperationalError:
-	pass
 
 if __name__ == '__main__':
 		if len(sys.argv) < 2:
@@ -117,6 +112,3 @@ if __name__ == '__main__':
 			print_subreddit(sys.argv[2])
 		elif sys.argv[1] == "clear_all":
 			clear_all()
-
-
-
