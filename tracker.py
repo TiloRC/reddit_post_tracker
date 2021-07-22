@@ -31,9 +31,9 @@ class PostTracker:
 
     def fetch_all_data(self):
         def fetch_new_subreddit_data(sub):
-            print(sub + " fetching data...")
+            #print(sub + " fetching data...")
             result = {sub: [post for post in reddit.subreddit(sub).hot(limit = self.subs[sub]) if not post.stickied]}
-            print(sub + " fetching data complete")
+            #print(sub + " fetching data complete")
             return result
 
         start = time.time()
