@@ -1,13 +1,8 @@
 import praw
-import json
 import schedule
-import math
-import statistics as stats
 from datetime import datetime
 import concurrent.futures
-import os
 import sys
-
 from settings import reddit
 import time
 import database
@@ -15,7 +10,7 @@ import database
 
 class PostTracker:
     def __init__(self, subreddits):
-        self.subs = {sub:2+2*self.count_new_posts(sub) for sub in subreddits}
+        self.subs = {sub:5+2*self.count_new_posts(sub) for sub in subreddits}
         print(self.subs)
         for sub in self.subs:
             try:
@@ -27,7 +22,7 @@ class PostTracker:
         print("Tracking started...")
         def update_all():
             raw_data = self.fetch_all_data()
-            new_data = self.clean_up(raw_data) # Converts to dictionary format
+            new_data = self.clean_up(raw_data) # Converts to dictionary format {"WritingPrompts": {"opcjb0":...}}
             self.export_to_database(new_data)
 
         schedule.every().minute.at(":00").do(update_all)
@@ -48,7 +43,7 @@ class PostTracker:
                 for subreddit in executor.map(fetch_new_subreddit_data,self.subs):
                     result.update(subreddit)
         else:
-            result = [fetch_new_subreddit_data([sub for sub in self.subs][0])]
+            result = fetch_new_subreddit_data([sub for sub in self.subs][0])
         end = time.time()
         print("Fetch all time: ", end-start)
         return result
@@ -93,9 +88,7 @@ class PostTracker:
         return num_new_posts
 
 
-
 if __name__ == '__main__':
-    #subs sys.argv[1:]
-    subs = ["lain", "writingprompts", "wallstreetbets"]
-    pt = PostTracker(subs)
+    subreddits =  sys.argv[1:]
+    pt = PostTracker(subreddits)
     pt.start_tracking()
