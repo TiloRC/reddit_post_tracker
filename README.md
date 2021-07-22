@@ -7,11 +7,9 @@ You'll need to have a reddit developer acount and authentication information to 
 
 ```
 import praw
-
 reddit = praw.Reddit(client_id='your id', \
                      client_secret='your secret', \
                      user_agent='your app name', \
                      username='your username ', \
                      password="your password")
-
 ```
