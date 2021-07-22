@@ -3,7 +3,7 @@ This is a reddit bot that tracks the growth of reddit upvote counts over time. I
 
 ## How to Get Started (WIP)
 
-You'll need to have a reddit developer acount and authentication information to run this code. I'll be assuming you already went through the process of setting that up (it's completely free). After cloning this repository, create a new file called "authentication.py." Fill it in so it looks something like this:
+You'll need to have a reddit developer acount and authentication information to run this code. I'll be assuming you already went through the process of setting that up (it's completely free). After cloning this repository, create a new file called "authentication.py." Add your authentication information to the file. It should look something like this:
 
 ```
 import praw
