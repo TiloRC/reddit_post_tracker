@@ -1,4 +1,4 @@
-import praw
+import praw, prawcore
 import schedule
 from datetime import datetime
 import concurrent.futures
@@ -21,9 +21,13 @@ class PostTracker:
     def start_tracking(self):
         print("Tracking started...")
         def update_all():
-            raw_data = self.fetch_all_data()
-            new_data = self.clean_up(raw_data) # Converts to dictionary format {"WritingPrompts": {"opcjb0":...}}
-            self.export_to_database(new_data)
+            try:
+                raw_data = self.fetch_all_data()
+                new_data = self.clean_up(raw_data) # Converts to dictionary format {"WritingPrompts": {"opcjb0":...}}
+                self.export_to_database(new_data)
+            except prawcore.exceptions.BadJSON:
+                print("Error: ", prawcore.exceptions.BadJSON)
+                print("Script will continue to run.")
 
         schedule.every().minute.at(":00").do(update_all)
         while True:
