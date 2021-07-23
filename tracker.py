@@ -11,7 +11,7 @@ import database
 class PostTracker:
     def __init__(self, subreddits):
         self.subs = {sub:5+2*self.count_new_posts(sub) for sub in subreddits}
-        print(self.subs)
+        print(self.subs, flush=True)
         for sub in self.subs:
             try:
                 database.create_table(sub)
@@ -19,7 +19,7 @@ class PostTracker:
                 pass
 
     def start_tracking(self):
-        print("Tracking started...")
+        print("Tracking started...", flush=True)
         def update_all():
             try:
                 raw_data = self.fetch_all_data()
@@ -27,7 +27,7 @@ class PostTracker:
                 self.export_to_database(new_data)
             except prawcore.exceptions.BadJSON:
                 print("Error: ", prawcore.exceptions.BadJSON)
-                print("Script will continue to run.")
+                print("Script will continue to run.", flush=True)
 
         schedule.every().minute.at(":00").do(update_all)
         while True:
@@ -49,7 +49,7 @@ class PostTracker:
         else:
             result = fetch_new_subreddit_data([sub for sub in self.subs][0])
         end = time.time()
-        print("Fetch all time: ", end-start)
+        print("Fetch all time: ", end-start, flush=True)
         return result
 
     def clean_up(self,raw_data):
