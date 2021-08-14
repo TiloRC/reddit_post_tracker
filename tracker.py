@@ -10,8 +10,10 @@ import database
 
 class PostTracker:
     def __init__(self, subreddits):
+        # The number of active posts for each subreddit is (over) estimated with this equation: 2 * new_posts_in_last_12_hours + 5
+        # Better to get a few posts that aren't growing than to miss some growing posts
         self.subs = {sub:5+2*self.count_new_posts(sub) for sub in subreddits}
-        print(self.subs, flush=True)
+        print("Estimated active posts per subreddit: ",self.subs, flush=True)
         for sub in self.subs:
             try:
                 database.create_table(sub)
