@@ -16,4 +16,6 @@ reddit = praw.Reddit(client_id='your id', \
 
 ## Using Reddit Post Tracker
 
-    python3 tracker subreddit1 subreddit2 etc.
+Using Reddit Post Tracker is as simple as navigating to folder where it is located and running a command with the subreddits you want to track.
+    
+    python3 tracker.py subreddit1 subreddit2 etc.
