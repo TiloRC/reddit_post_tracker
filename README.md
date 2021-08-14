@@ -1,9 +1,9 @@
 # Reddit Post Tracker (WIP)
-This is a reddit bot that tracks the growth of reddit upvote counts over time. I'm building it to collect data for a blog post I'm writing about how reddit posts grow over time.
+This bot tracks the growth of post upvote counts, hot rankings, and comments over time using PRAW. I'm building it to collect data for a blog post I'm writing.
 
 ## How to Get Started
 
-You'll need to have a reddit developer acount and authentication information to run this code. I'll be assuming you already went through the process of setting that up (it's completely free). After cloning this repository, create a new file called "authentication.py" and add your authentication information to the file. It should look something like this:
+You'll need to have a reddit developer acount and authentication information to run this code. If you don't already have such an account you can follow [this](https://towardsdatascience.com/how-to-use-the-reddit-api-in-python-5e05ddfd1e5c) guide  (it's completely free). After cloning this repository, create a new file called "authentication.py" and add your authentication information to the file. It should look something like this:
 
 ```
 import praw
@@ -19,3 +19,5 @@ reddit = praw.Reddit(client_id='your id', \
 Using Reddit Post Tracker is as simple as navigating to folder where it is located and running a command with the subreddits you want to track.
     
     python3 tracker.py subreddit1 subreddit2 etc.
+    
+The data you collect will be stored in an SQLite database. 
