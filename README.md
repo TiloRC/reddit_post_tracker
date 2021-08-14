@@ -3,7 +3,7 @@ This bot tracks the growth of post upvote counts, hot rankings, and comments ove
 
 ## How to Get Started
 
-You'll need to have a reddit developer acount and authentication information to run this code. If you don't already have such an account you can follow [this](https://towardsdatascience.com/how-to-use-the-reddit-api-in-python-5e05ddfd1e5c) guide  (it's completely free). After cloning this repository, create a new file called "authentication.py" and add your authentication information to the file. It should look something like this:
+You'll need to have a reddit developer acount and authentication information to run this code. If you don't already have such an account you can follow [this guide](https://towardsdatascience.com/how-to-use-the-reddit-api-in-python-5e05ddfd1e5c)  (it's completely free). After cloning this repository, create a new file called "authentication.py" and add your authentication information to the file. It should look something like this:
 
 ```
 import praw
@@ -16,8 +16,15 @@ reddit = praw.Reddit(client_id='your id', \
 
 ## Using Reddit Post Tracker
 
-Using Reddit Post Tracker is as simple as navigating to folder where it is located and running a command with the subreddits you want to track.
+Using Reddit Post Tracker is as simple as navigating to folder where it is located and running a command through the command line with the subreddits you want to track.
     
     python3 tracker.py subreddit1 subreddit2 etc.
     
-The data you collect will be stored in an SQLite database. 
+At the start of every minute data is collected from aproximately all the active posts for each subreddit and automatically stored in an SQLite database in a file called "data.db." Here's an example of what some of the data might look like:
+
+| post_id        | score           | rank  | num_comments  | present_time (utc time) |
+| ------------- |:-------------:|:-------------:|:-------------:| -----:| 
+| ooj686         | 19              | 146 |6       | 1626925094.94296
+| oojteo         | 17              |   147 |1     | 1626925094.94296
+| ooiid9         | 20              |    148 |1    | 1626925094.94296
+
