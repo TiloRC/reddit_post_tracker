@@ -13,3 +13,7 @@ reddit = praw.Reddit(client_id='your id', \
                      username='your username ', \
                      password="your password")
 ```
+
+## Using Reddit Post Tracker
+
+    python3 tracker subreddit 1, subreddit 2
