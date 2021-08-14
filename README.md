@@ -20,4 +20,4 @@ Using Reddit Post Tracker is as simple as navigating to folder where it is locat
     
     python3 tracker.py subreddit1 subreddit2 etc.
     
-The data you collect will be stored in an SQLite database. 
+The data you collect will be stored in an SQLite database in a file called "data.db."
