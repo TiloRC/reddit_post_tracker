@@ -3,7 +3,7 @@ This bot tracks the growth of post upvote counts, hot rankings, and comments ove
 
 ## How to Get Started
 
-You'll need to have a reddit developer acount and authentication information to run this code. If you don't already have such an account you can follow [this](https://towardsdatascience.com/how-to-use-the-reddit-api-in-python-5e05ddfd1e5c) guide  (it's completely free). After cloning this repository, create a new file called "authentication.py" and add your authentication information to the file. It should look something like this:
+You'll need to have a reddit developer acount and authentication information to run this code. If you don't already have such an account you can follow [this guide](https://towardsdatascience.com/how-to-use-the-reddit-api-in-python-5e05ddfd1e5c)  (it's completely free). After cloning this repository, create a new file called "authentication.py" and add your authentication information to the file. It should look something like this:
 
 ```
 import praw
