@@ -28,3 +28,4 @@ Every minute data is collected from aproximately all the active posts for each s
 | oojteo         | 17              |   147 |1     | 1626925094.94296
 | ooiid9         | 20              |    148 |1    | 1626925094.94296
 
+Note that the time is utc time. 
