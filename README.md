@@ -22,10 +22,9 @@ Using Reddit Post Tracker is as simple as navigating to folder where it is locat
     
 Every minute data is collected from aproximately all the active posts for each subreddit and automatically stored in an SQLite database in a file called "data.db." Here's an example of what some of the data might look like:
 
-| post_id        | score           | rank  | num_comments  | present_time  |
+| post_id        | score           | rank  | num_comments  | present_time (utc time) |
 | ------------- |:-------------:|:-------------:|:-------------:| -----:| 
 | ooj686         | 19              | 146 |6       | 1626925094.94296
 | oojteo         | 17              |   147 |1     | 1626925094.94296
 | ooiid9         | 20              |    148 |1    | 1626925094.94296
 
-Note that the time is utc time. 
