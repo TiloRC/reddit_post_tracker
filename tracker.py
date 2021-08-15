@@ -55,7 +55,7 @@ class PostTracker:
         return result
 
     def clean_up(self,raw_data):
-        present_time = time.time()
+        present_time = round(time.time())
         new_data = {}
         for subreddit in raw_data:
             subreddit_data = {}
