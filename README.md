@@ -1,4 +1,4 @@
-# Reddit Post Tracker (WIP)
+# Reddit Post Tracker
 This bot tracks the growth of post upvote counts, hot rankings, and comments over time using PRAW. I'm building it to collect data for a blog post I'm writing.
 
 ## How to Get Started
