@@ -24,7 +24,7 @@ At the start of every minute data is collected from aproximately all the active 
 
 | post_id        | score           | rank  | num_comments  | present_time (utc time) |
 | ------------- |:-------------:|:-------------:|:-------------:| -----:| 
-| ooj686         | 19              | 146 |6       | 1626925094.94296
-| oojteo         | 17              |   147 |1     | 1626925094.94296
-| ooiid9         | 20              |    148 |1    | 1626925094.94296
+| ooj686         | 19              | 146 |6       | 1626925094
+| oojteo         | 17              |   147 |1     | 1626925094
+| ooiid9         | 20              |    148 |1    | 1626925094
 
