@@ -28,4 +28,4 @@ At the start of every minute data is collected from aproximately all the active 
 | oojteo         | 17              |   147 |1     | 1626925094
 | ooiid9         | 20              |    148 |1    | 1626925094
 
-Present time is the present time immediately after all the data has been requested and obtained. Because of this, the present time will have a possibly large positive error no more than the fetch all time. 
+Present time is the present time immediately after all the data has been requested and obtained. Because of this, the present time will have a possibly large positive error for each post no more than the fetch all time. 
