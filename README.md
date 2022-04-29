@@ -1,5 +1,5 @@
 # Reddit Post Tracker
-This bot tracks the growth of post upvote counts, hot rankings, and comments over time using PRAW. I'm building it to collect data for a blog post I'm writing.
+Tracks time series data for reddit posts. I'm building it to collect data for a blog post I'm writing.
 
 ## How to Get Started
 
